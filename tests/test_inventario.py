@@ -2,8 +2,8 @@
 
 import unittest
 
-from Evaluacion_Agil_2.repositorios import MovimientoRepositorio, ProductoRepositorio
-from Evaluacion_Agil_2.servicios import Inventario
+from repositorios import MovimientoRepositorio, ProductoRepositorio
+from servicios import Inventario
 
 
 class TestInventario(unittest.TestCase):

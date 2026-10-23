@@ -4,8 +4,8 @@ Servicio de inventario: reglas de negocio de las historias de usuario.
 No guarda datos por sí mismo; todo lo pide a los repositorios.
 """
 
-from Evaluacion_Agil_2.modelos import Movimiento, Producto
-from Evaluacion_Agil_2.repositorios import MovimientoRepositorio, ProductoRepositorio
+from modelos import Movimiento, Producto
+from repositorios import MovimientoRepositorio, ProductoRepositorio
 
 
 class Inventario:

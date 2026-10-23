@@ -1,7 +1,7 @@
 """Menús por rol. Cada rol ve solo las opciones de sus historias de usuario."""
 
-from Evaluacion_Agil_2.interfaz import acciones
-from Evaluacion_Agil_2.interfaz.utilidades import pedir_entero
+from interfaz import acciones
+from interfaz.utilidades import pedir_entero
 
 MENUS = {
     "Administrador": [

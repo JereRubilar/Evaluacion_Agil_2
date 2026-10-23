@@ -1,6 +1,6 @@
 """Una función por cada opción del menú (una por historia de usuario)."""
 
-from Evaluacion_Agil_2.interfaz.utilidades import mostrar_alerta, pedir_codigo, pedir_entero
+from interfaz.utilidades import mostrar_alerta, pedir_codigo, pedir_entero
 
 
 def listar_productos(inv, rol):

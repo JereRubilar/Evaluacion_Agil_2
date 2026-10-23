@@ -1,9 +1,9 @@
 """Punto de entrada del Sistema de Control de Inventario."""
 
-from Evaluacion_Agil_2.ejemplo import cargar_datos_ejemplo
-from Evaluacion_Agil_2.interfaz.menus import menu_principal
-from Evaluacion_Agil_2.repositorios import MovimientoRepositorio, ProductoRepositorio
-from Evaluacion_Agil_2.servicios import Inventario
+from ejemplo import cargar_datos_ejemplo
+from interfaz.menus import menu_principal
+from repositorios import MovimientoRepositorio, ProductoRepositorio
+from servicios import Inventario
 
 
 def main():
