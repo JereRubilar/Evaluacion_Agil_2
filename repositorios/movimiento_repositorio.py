@@ -46,3 +46,19 @@ class MovimientoRepositorio:
             )
             for row in rows
         ]
+
+    def listar_con_detalles(self):
+        """Retorna todos los movimientos con nombres de producto y usuario para reportes."""
+        conexion = obtener_conexion()
+        cursor = conexion.cursor()
+        cursor.execute("""
+            SELECT m.id_movimiento, m.id_producto, p.nombre, m.tipo, m.cantidad, 
+                   m.id_usuario, u.nombre, m.detalle, m.fecha
+            FROM movimiento m
+            JOIN producto p ON m.id_producto = p.id_producto
+            LEFT JOIN usuario u ON m.id_usuario = u.id_usuario
+            ORDER BY m.fecha DESC
+        """)
+        rows = cursor.fetchall()
+        conexion.close()
+        return rows

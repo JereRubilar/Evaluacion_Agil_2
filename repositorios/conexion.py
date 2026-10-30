@@ -1,7 +1,10 @@
 import sqlite3
-import os
+import hashlib
 
 DB_NAME = "inventario.db"
+
+def encriptar_password(password):
+    return hashlib.sha256(password.encode('utf-8')).hexdigest()
 
 def obtener_conexion():
     conexion = sqlite3.connect(DB_NAME)
@@ -66,13 +69,11 @@ def inicializar_base_datos():
     );
     """)
 
-    cursor.execute("SELECT COUNT(*) FROM usuario;")
-    if cursor.fetchone()[0] == 0:
-        cursor.execute(
-            "INSERT INTO usuario (nombre, contraseña_hash, rol) VALUES (?, ?, ?)",
-            ("admin", "1234", "Administrador")
-        )
-        conexion.commit()
+    password_cifrada = encriptar_password("1234")
+    cursor.execute("""
+        INSERT OR IGNORE INTO usuario (nombre, contraseña_hash, rol)
+        VALUES (?, ?, ?)
+    """, ("admin", password_cifrada, "Administrador"))
 
     conexion.commit()
     conexion.close()

@@ -1,4 +1,5 @@
 import tkinter as tk
+import hashlib
 from tkinter import messagebox, ttk
 from repositorios import (
     UsuarioRepositorio, 
@@ -7,6 +8,7 @@ from repositorios import (
     CategoriaRepositorio
 )
 from servicios import Inventario
+from modelos import Categoria, Usuario
 
 class AppInventario:
     def __init__(self, root):
@@ -61,7 +63,9 @@ class AppInventario:
             return
 
         usuario = self.repo_usuarios.obtener_por_nombre(nombre)
-        if usuario and usuario.contraseña_hash == password:
+        
+        # Comparamos el hash de la contraseña ingresada con el hash guardado en la base de datos
+        if usuario and usuario.contraseña_hash == encriptar_password(password):
             self.entry_usuario.delete(0, tk.END)
             self.entry_password.delete(0, tk.END)
             self.mostrar_panel_principal(usuario)
@@ -101,29 +105,6 @@ class AppInventario:
 
         tk.Label(content_frame, text="Panel de Control y Stock", font=("Arial", 14, "bold"), bg="#f0f0f0").pack(anchor="w", pady=2)
 
-        # --- HU-10: Tarjeta de Resumen Diario Automático ---
-        self.resumen_frame = tk.LabelFrame(
-            content_frame, 
-            text="📊 Resumen Diario Automático (Hoy)", 
-            font=("Arial", 11, "bold"), 
-            bg="#ffffff", 
-            fg="#333333",
-            padx=15, 
-            pady=10,
-            relief="groove",
-            borderwidth=2
-        )
-        self.resumen_frame.pack(fill="x", pady=8)
-
-        # Labels internos del resumen
-        self.lbl_ventas = tk.Label(self.resumen_frame, text="", font=("Arial", 10, "bold"), bg="#ffffff", fg="#2E7D32")
-        self.lbl_ventas.pack(anchor="w", pady=2)
-
-        self.lbl_gastos = tk.Label(self.resumen_frame, text="", font=("Arial", 10, "bold"), bg="#ffffff", fg="#C62828")
-        self.lbl_gastos.pack(anchor="w", pady=2)
-
-        self.lbl_ops = tk.Label(self.resumen_frame, text="", font=("Arial", 9, "italic"), bg="#ffffff", fg="#666666")
-        self.lbl_ops.pack(anchor="w", pady=2)
 
         # --- Tabla de Productos (Treeview) ---
         table_frame = tk.Frame(content_frame)
@@ -167,26 +148,6 @@ class AppInventario:
         )
         btn_actualizar.pack(side="left", padx=4)
 
-        btn_alertas = tk.Button(
-            actions_frame, 
-            text="⚠️ Alertas Stock", 
-            bg="#D35400", 
-            fg="white", 
-            font=("Arial", 9, "bold"), 
-            command=self.abrir_ventana_alertas
-        )
-        btn_alertas.pack(side="left", padx=4)
-
-        btn_historial = tk.Button(
-            actions_frame, 
-            text="📋 Ver Historial", 
-            bg="#2980B9", 
-            fg="white", 
-            font=("Arial", 9, "bold"), 
-            command=self.abrir_ventana_historial
-        )
-        btn_historial.pack(side="left", padx=4)
-
         btn_alta = tk.Button(
             actions_frame, 
             text="⬆ Entrada", 
@@ -207,7 +168,84 @@ class AppInventario:
         )
         btn_baja.pack(side="left", padx=4)
 
+        if usuario.rol == "Supervisor":
+
+            btn_historial = tk.Button(
+                actions_frame, 
+                text="📋 Ver Historial", 
+                bg="#2980B9", 
+                fg="white", 
+                font=("Arial", 9, "bold"), 
+                command=self.abrir_ventana_historial
+            )
+            btn_historial.pack(side="left", padx=4)
+            
+        # Botón para exportar planilla (HU-11)
+            btn_exportar = tk.Button(
+                actions_frame, 
+                text="📤 Exportar Planilla", 
+                bg="#16A085", 
+                fg="white", 
+                font=("Arial", 9, "bold"), 
+                command=self.exportar_reporte_movimientos
+            )
+            btn_exportar.pack(side="left", padx=4)
+
         if usuario.rol == "Administrador":
+
+            self.resumen_frame = tk.LabelFrame(
+                content_frame, 
+                text="📊 Resumen Diario Automático (Hoy)", 
+                font=("Arial", 11, "bold"), 
+                bg="#ffffff", 
+                fg="#333333",
+                padx=15, 
+                pady=10,
+                relief="groove",
+                borderwidth=2
+            )
+            self.resumen_frame.pack(fill="x", pady=8)
+
+            self.lbl_ventas = tk.Label(self.resumen_frame, text="", font=("Arial", 10, "bold"), bg="#ffffff", fg="#2E7D32")
+            self.lbl_ventas.pack(anchor="w", pady=2)
+
+            self.lbl_gastos = tk.Label(self.resumen_frame, text="", font=("Arial", 10, "bold"), bg="#ffffff", fg="#C62828")
+            self.lbl_gastos.pack(anchor="w", pady=2)
+
+            self.lbl_ops = tk.Label(self.resumen_frame, text="", font=("Arial", 9, "italic"), bg="#ffffff", fg="#666666")
+            self.lbl_ops.pack(anchor="w", pady=2)
+
+            btn_usuarios = tk.Button(
+                actions_frame, 
+                text="👥 Usuarios", 
+                bg="#1ABC9C", 
+                fg="white", 
+                font=("Arial", 9, "bold"), 
+                command=self.abrir_ventana_usuarios
+            )
+            btn_usuarios.pack(side="left", padx=4)
+
+            btn_alertas = tk.Button(
+                actions_frame, 
+                text="⚠️ Alertas Stock", 
+                bg="#D35400", 
+                fg="white", 
+                font=("Arial", 9, "bold"), 
+                command=self.abrir_ventana_alertas
+            )
+            btn_alertas.pack(side="left", padx=4)
+
+            # HU-09: Gestión y Creación de Categorías
+            btn_categorias = tk.Button(
+                actions_frame, 
+                text="🏷️ Categorías", 
+                bg="#8E44AD", 
+                fg="white", 
+                font=("Arial", 9, "bold"), 
+                command=self.abrir_ventana_categorias
+            )
+            btn_categorias.pack(side="left", padx=4)
+
             btn_agregar = tk.Button(
                 actions_frame, 
                 text="➕ Nuevo", 
@@ -238,11 +276,9 @@ class AppInventario:
             )
             btn_eliminar.pack(side="left", padx=4)
 
-        # Cargar datos iniciales (tabla + resumen)
         self.actualizar_vista_completa()
 
     def actualizar_vista_completa(self):
-        """Refresca tanto la tabla de productos como la tarjeta de resumen diario."""
         self.cargar_productos_tabla()
         self.actualizar_resumen_diario()
 
@@ -265,15 +301,11 @@ class AppInventario:
             ), tags=(tag,))
 
     def actualizar_resumen_diario(self):
-        """Consulta el servicio y actualiza los textos de la tarjeta de resumen diario (HU-10)."""
         resumen = self.inv.resumen_diario()
-        
         ventas_monto = resumen["ventas"]["monto_total"]
         ventas_cant = resumen["ventas"]["cantidad_unidades"]
-        
         gastos_monto = resumen["gastos_compras"]["monto_total"]
         gastos_cant = resumen["gastos_compras"]["monto_unidades"] if "monto_unidades" in resumen["gastos_compras"] else resumen["gastos_compras"]["cantidad_unidades"]
-        
         ops_hoy = resumen["operaciones_hoy"]
 
         self.lbl_ventas.config(text=f"🟢 Ventas del Día: ${ventas_monto:,.2f}  (Unidades vendidas: {ventas_cant})")
@@ -286,6 +318,75 @@ class AppInventario:
             values = self.tree.item(selected_item[0], "values")
             return int(values[0])
         return None
+
+    # --- HU-09: VENTANA DE GESTIÓN Y CREACIÓN DE CATEGORÍAS ---
+    def abrir_ventana_categorias(self):
+        win = tk.Toplevel(self.root)
+        win.title("Gestión de Categorías")
+        win.geometry("400x450")
+        win.resizable(False, False)
+        win.grab_set()
+
+        tk.Label(win, text="Gestión de Categorías", font=("Arial", 13, "bold")).pack(pady=10)
+
+        # Formulario para crear categoría nueva
+        frame_nuevo = tk.LabelFrame(win, text="Nueva Categoría", padx=10, pady=10)
+        frame_nuevo.pack(fill="x", padx=15, pady=5)
+
+        tk.Label(frame_nuevo, text="Nombre de la Categoría:", anchor="w").pack(fill="x")
+        entry_cat_nombre = tk.Entry(frame_nuevo, font=("Arial", 10))
+        entry_cat_nombre.pack(fill="x", pady=5)
+
+        def guardar_categoria():
+            nombre = entry_cat_nombre.get().strip()
+            if not nombre:
+                messagebox.showerror("Error", "El nombre de la categoría no puede estar vacío.")
+                return
+            try:
+                nueva_cat = Categoria(nombre=nombre)
+                self.repo_categorias.guardar(nueva_cat)
+                messagebox.showinfo("Éxito", f"Categoría '{nombre}' creada correctamente.")
+                entry_cat_nombre.delete(0, tk.END)
+                cargar_lista_categorias()
+                # Actualizar también la tabla principal por si acaso
+                self.actualizar_vista_completa()
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo guardar la categoría: {e}")
+
+        btn_guardar_cat = tk.Button(
+            frame_nuevo, 
+            text="Guardar Categoría", 
+            bg="#8E44AD", 
+            fg="white", 
+            font=("Arial", 9, "bold"), 
+            command=guardar_categoria
+        )
+        btn_guardar_cat.pack(fill="x", pady=5)
+
+        # Listado de categorías existentes
+        frame_lista = tk.LabelFrame(win, text="Categorías Registradas", padx=10, pady=10)
+        frame_lista.pack(fill="both", expand=True, padx=15, pady=10)
+
+        tree_scroll = ttk.Scrollbar(frame_lista)
+        tree_scroll.pack(side="right", fill="y")
+
+        tree_cat = ttk.Treeview(frame_lista, columns=("id", "nombre"), show="headings", yscrollcommand=tree_scroll.set)
+        tree_scroll.config(command=tree_cat.yview)
+
+        tree_cat.heading("id", text="ID")
+        tree_cat.heading("nombre", text="Nombre de Categoría")
+        tree_cat.column("id", width=60, anchor="center")
+        tree_cat.column("nombre", width=260, anchor="w")
+        tree_cat.pack(fill="both", expand=True)
+
+        def cargar_lista_categorias():
+            for row in tree_cat.get_children():
+                tree_cat.delete(row)
+            categorias = self.repo_categorias.listar()
+            for c in categorias:
+                tree_cat.insert("", "end", values=(c.id_categoria, c.nombre))
+
+        cargar_lista_categorias()
 
     # --- VENTANA EMERGENTE DE ALERTAS DE STOCK ---
     def abrir_ventana_alertas(self):
@@ -635,3 +736,89 @@ class AppInventario:
             command=procesar_movimiento
         )
         btn_confirmar.pack(fill="x", pady=15)
+
+    def exportar_reporte_movimientos(self):
+        from tkinter import filedialog
+        
+        # Abrir diálogo para que el usuario elija dónde guardar la planilla
+        archivo_path = filedialog.asksaveasfilename(
+            defaultextension=".csv",
+            filetypes=[("Archivos CSV (Excel)", "*.csv"), ("Todos los archivos", "*.*")],
+            title="Guardar Resumen de Movimientos"
+        )
+        
+        if not archivo_path:
+            return  # El usuario canceló la acción
+
+        try:
+            self.inv.exportar_movimientos_csv(archivo_path)
+            messagebox.showinfo("Éxito", f"El reporte se ha exportado correctamente en:\n{archivo_path}")
+        except Exception as e:
+            messagebox.showerror("Error de exportación", str(e))
+
+    def abrir_ventana_usuarios(self):
+        win = tk.Toplevel(self.root)
+        win.title("Gestión de Usuarios")
+        win.geometry("400x420")
+        win.resizable(False, False)
+        win.grab_set()
+
+        tk.Label(win, text="Registrar Nuevo Usuario", font=("Arial", 13, "bold")).pack(pady=10)
+
+        frame_form = tk.LabelFrame(win, text="Datos del Usuario", padx=15, pady=10)
+        frame_form.pack(fill="x", padx=15, pady=5)
+
+        # Nombre de usuario
+        tk.Label(frame_form, text="Nombre de Usuario:", anchor="w").pack(fill="x")
+        entry_nombre = tk.Entry(frame_form, font=("Arial", 10))
+        entry_nombre.pack(fill="x", pady=4)
+
+        # Contraseña
+        tk.Label(frame_form, text="Contraseña:", anchor="w").pack(fill="x")
+        entry_pass = tk.Entry(frame_form, font=("Arial", 10), show="*")
+        entry_pass.pack(fill="x", pady=4)
+
+        # Rol (ComboBox)
+        tk.Label(frame_form, text="Rol del Usuario:", anchor="w").pack(fill="x")
+        roles_disponibles = ["Administrador", "Supervisor", "Reponedor"]
+        combo_rol = ttk.Combobox(frame_form, values=roles_disponibles, state="readonly")
+        combo_rol.set("Supervisor")
+        combo_rol.pack(fill="x", pady=4)
+
+        def guardar_nuevo_usuario():
+            nombre = entry_nombre.get().strip()
+            password = entry_pass.get().strip()
+            rol = combo_rol.get()
+
+            if not nombre or not password:
+                messagebox.showerror("Error", "Todos los campos son obligatorios.")
+                return
+
+            # Verificar si el usuario ya existe
+            if self.repo_usuarios.obtener_por_nombre(nombre):
+                messagebox.showerror("Error", f"El usuario '{nombre}' ya existe en el sistema.")
+                return
+
+            try:
+                # Encriptar contraseña con SHA-256 antes de guardarla
+                pass_hash = encriptar_password(password)
+                nuevo_usuario = Usuario(nombre=nombre, contraseña_hash=pass_hash, rol=rol)
+                
+                self.repo_usuarios.guardar(nuevo_usuario)
+                messagebox.showinfo("Éxito", f"Usuario '{nombre}' creado con rol de {rol}.")
+                win.destroy()
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo registrar el usuario: {e}")
+
+        btn_guardar = tk.Button(
+            frame_form, 
+            text="Guardar Usuario", 
+            bg="#1ABC9C", 
+            fg="white", 
+            font=("Arial", 10, "bold"), 
+            command=guardar_nuevo_usuario
+        )
+        btn_guardar.pack(fill="x", pady=15)
+
+def encriptar_password(password):
+        return hashlib.sha256(password.encode('utf-8')).hexdigest()

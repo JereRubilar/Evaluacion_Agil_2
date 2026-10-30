@@ -1,4 +1,4 @@
-from modelos import Usuario
+from modelos.usuario import Usuario
 from repositorios.conexion import obtener_conexion
 
 class UsuarioRepositorio:
@@ -17,11 +17,14 @@ class UsuarioRepositorio:
     def obtener_por_nombre(self, nombre):
         conexion = obtener_conexion()
         cursor = conexion.cursor()
-        cursor.execute("SELECT id_usuario, nombre, contraseña_hash, rol FROM usuario WHERE nombre = ?", (nombre,))
+        cursor.execute(
+            "SELECT id_usuario, nombre, contraseña_hash, rol FROM usuario WHERE nombre = ?", 
+            (nombre,)
+        )
         row = cursor.fetchone()
         conexion.close()
         if row:
-            return Usuario(nombre=row[1], contraseña_hash=row[2], rol=row[3], id_usuario=row[0])
+            return Usuario(id_usuario=row[0], nombre=row[1], contraseña_hash=row[2], rol=row[3])
         return None
 
     def listar(self):
@@ -30,7 +33,4 @@ class UsuarioRepositorio:
         cursor.execute("SELECT id_usuario, nombre, contraseña_hash, rol FROM usuario")
         rows = cursor.fetchall()
         conexion.close()
-        return [
-            Usuario(nombre=row[1], contraseña_hash=row[2], rol=row[3], id_usuario=row[0])
-            for row in rows
-        ]
+        return [Usuario(id_usuario=row[0], nombre=row[1], contraseña_hash=row[2], rol=row[3]) for row in rows]

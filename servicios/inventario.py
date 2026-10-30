@@ -1,11 +1,12 @@
 from modelos import Movimiento, Producto, Categoria
-from repositorios import MovimientoRepositorio, ProductoRepositorio
+from repositorios import MovimientoRepositorio, ProductoRepositorio, CategoriaRepositorio
 
 
 class Inventario:
-    def __init__(self, repo_productos=None, repo_movimientos=None):
-        self.__productos = repo_productos or ProductoRepositorio()
-        self.__movimientos = repo_movimientos or MovimientoRepositorio()
+    def __init__(self, producto_repo, movimiento_repo, categoria_repo=None):
+        self.__productos = producto_repo
+        self.__movimientos = movimiento_repo
+        self.__repo_categorias = categoria_repo if categoria_repo else CategoriaRepositorio()
 
     def buscar(self, id_producto):
         producto = self.__productos.obtener(id_producto)
@@ -119,10 +120,13 @@ class Inventario:
 
     def asignar_categoria_a_producto(self, id_producto, id_categoria):
         producto = self.buscar(id_producto)
+        if not producto:
+            raise ValueError(f"No existe el producto con ID {id_producto}.")
+
         if id_categoria is not None:
             categoria = self.__repo_categorias.obtener(id_categoria)
             if not categoria:
-                raise ValueError(f"No existe la categoría con ID {id_categoria}.")
+                raise ValueError(f"La categoría con ID {id_categoria} no existe.")
         
         producto.id_categoria = id_categoria
         self.__productos.actualizar(producto)
@@ -181,3 +185,21 @@ class Inventario:
             "operaciones_hoy": len(rows),
             "detalle": detalle_movimientos
         }
+
+    def exportar_movimientos_csv(self, ruta_archivo):
+        import csv
+        movimientos = self.__movimientos.listar_con_detalles()
+        
+        try:
+            with open(ruta_archivo, mode='w', newline='', encoding='utf-8-sig') as archivo:
+                writer = csv.writer(archivo, delimiter=';') # Usamos punto y coma para mejor compatibilidad con Excel en español
+                
+                # Cabecera de la planilla
+                writer.writerow(["ID Movimiento", "ID Producto", "Producto", "Tipo", "Cantidad", "ID Usuario", "Usuario", "Motivo / Detalle", "Fecha y Hora"])
+                
+                # Filas de datos
+                for row in movimientos:
+                    writer.writerow(row)
+            return True
+        except Exception as e:
+            raise ValueError(f"Error al generar el archivo CSV: {e}")
