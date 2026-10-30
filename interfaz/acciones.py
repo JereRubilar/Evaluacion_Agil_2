@@ -1,4 +1,3 @@
-"""Una función por cada opción del menú (una por historia de usuario)."""
 
 from interfaz.utilidades import mostrar_alerta, pedir_codigo, pedir_entero
 
@@ -14,7 +13,7 @@ def listar_productos(inv, rol):
 
 
 def agregar_producto(inv, rol):
-    print("\n--- Ingresar producto (HU01) ---")
+    print("\n--- Ingresar producto ---")
     codigo = pedir_codigo("Código: ")
     nombre = input("Nombre: ").strip()
     stock_inicial = pedir_entero("Stock inicial: ")
@@ -26,7 +25,7 @@ def agregar_producto(inv, rol):
 
 
 def registrar_alta(inv, rol):
-    print("\n--- Registrar entrada de stock (HU02) ---")
+    print("\n--- Registrar entrada de stock ---")
     codigo = pedir_codigo()
     cantidad = pedir_entero("Cantidad a ingresar: ")
     p = inv.registrar_alta(codigo, cantidad, rol)
@@ -34,7 +33,7 @@ def registrar_alta(inv, rol):
 
 
 def registrar_llegada(inv, rol):
-    print("\n--- Ingresar productos recién llegados (HU05) ---")
+    print("\n--- Ingresar productos recién llegados ---")
     codigo = pedir_codigo()
     cantidad = pedir_entero("Cantidad recibida: ")
     p = inv.registrar_alta(codigo, cantidad, rol, "llegada de mercadería")
@@ -42,7 +41,7 @@ def registrar_llegada(inv, rol):
 
 
 def registrar_baja(inv, rol):
-    print("\n--- Registrar salida de stock (HU03) ---")
+    print("\n--- Registrar salida de stock ---")
     codigo = pedir_codigo()
     cantidad = pedir_entero("Cantidad a retirar: ")
     motivo = input("Motivo (venta/consumo/otro): ").strip()
@@ -52,7 +51,7 @@ def registrar_baja(inv, rol):
 
 
 def modificar_producto(inv, rol):
-    print("\n--- Modificar producto (HU04) ---")
+    print("\n--- Modificar producto ---")
     codigo = pedir_codigo()
     p = inv.buscar(codigo)
     print("  Actual: " + str(p))
@@ -66,7 +65,7 @@ def modificar_producto(inv, rol):
 
 
 def ver_alertas(inv, rol):
-    print("\n--- Productos en stock mínimo (HU06) ---")
+    print("\n--- Productos en stock mínimo ---")
     alertas = inv.productos_en_alerta()
     if not alertas:
         print("  Ningún producto está en stock mínimo.")
@@ -75,7 +74,7 @@ def ver_alertas(inv, rol):
 
 
 def ver_historial(inv, rol):
-    print("\n--- Historial de movimientos (HU07) ---")
+    print("\n--- Historial de movimientos ---")
     codigo = pedir_codigo()
     p = inv.buscar(codigo)
     movimientos = inv.historial(codigo)
@@ -87,7 +86,7 @@ def ver_historial(inv, rol):
 
 
 def eliminar_producto(inv, rol):
-    print("\n--- Eliminar producto no vigente (HU08) ---")
+    print("\n--- Eliminar producto no vigente ---")
     codigo = pedir_codigo()
     p = inv.buscar(codigo)
     confirma = input(f"¿Seguro que desea eliminar '{p.nombre}'? (s/n): ").strip().lower()

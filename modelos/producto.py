@@ -1,5 +1,3 @@
-"""Modelo Producto."""
-
 
 class Producto:
     def __init__(self, codigo, nombre, stock_inicial, stock_minimo, precio=0):
@@ -10,7 +8,6 @@ class Producto:
         self.precio = precio
 
     def en_stock_minimo(self):
-        """HU06: True si el stock llegó o bajó del mínimo."""
         return self.stock <= self.stock_minimo
 
     def __str__(self):

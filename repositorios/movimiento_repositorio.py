@@ -1,14 +1,7 @@
-"""
-Repositorio de movimientos (altas y bajas) para la trazabilidad (HU07).
-
-Los movimientos se guardan aparte de los productos, igual que serían
-dos tablas distintas en una base de datos.
-"""
-
 
 class MovimientoRepositorio:
     def __init__(self):
-        self.__movimientos = []   # privado: lista de (codigo_producto, Movimiento)
+        self.__movimientos = []
 
     def guardar(self, codigo_producto, movimiento):
         self.__movimientos.append((codigo_producto, movimiento))

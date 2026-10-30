@@ -1,4 +1,3 @@
-"""Funciones de apoyo para la consola."""
 
 
 def pedir_entero(mensaje, permitir_vacio=False):
@@ -17,7 +16,6 @@ def pedir_codigo(mensaje="Código del producto: "):
 
 
 def mostrar_alerta(producto):
-    """HU06: alerta inmediata al alcanzar el stock mínimo."""
     if producto.en_stock_minimo():
         print(f"\n  ⚠ ALERTA: '{producto.nombre}' alcanzó su stock mínimo "
               f"(stock actual: {producto.stock}, mínimo: {producto.stock_minimo}). "

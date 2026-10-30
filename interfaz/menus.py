@@ -1,4 +1,3 @@
-"""Menús por rol. Cada rol ve solo las opciones de sus historias de usuario."""
 
 from interfaz import acciones
 from interfaz.utilidades import pedir_entero
@@ -26,7 +25,6 @@ MENUS = {
 
 def menu_rol(inv, rol):
     opciones = MENUS[rol]
-    # HU06: al entrar el administrador se le avisa si hay productos en mínimo
     alertas = inv.productos_en_alerta()
     if rol == "Administrador" and alertas:
         print(f"\n  ⚠ Hay {len(alertas)} producto(s) en stock mínimo.")

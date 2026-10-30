@@ -1,8 +1,3 @@
-"""
-Servicio de inventario: reglas de negocio de las historias de usuario.
-
-No guarda datos por sí mismo; todo lo pide a los repositorios.
-"""
 
 from modelos import Movimiento, Producto
 from repositorios import MovimientoRepositorio, ProductoRepositorio

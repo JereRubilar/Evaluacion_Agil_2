@@ -1,4 +1,3 @@
-"""Modelo Movimiento: una alta o baja de stock (trazabilidad, HU07)."""
 
 from datetime import datetime
 
@@ -8,9 +7,9 @@ class Movimiento:
     BAJA = "BAJA"
 
     def __init__(self, tipo, cantidad, usuario, detalle=""):
-        self.tipo = tipo              # Movimiento.ALTA o Movimiento.BAJA
+        self.tipo = tipo              
         self.cantidad = cantidad
-        self.usuario = usuario        # rol que hizo el movimiento
+        self.usuario = usuario        
         self.detalle = detalle
         self.fecha = datetime.now()
 
