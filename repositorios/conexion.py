@@ -1,0 +1,56 @@
+import sqlite3
+import os
+
+DB_NAME = "inventario.db"
+
+def obtener_conexion():
+    conexion = sqlite3.connect(DB_NAME)
+    conexion.execute("PRAGMA foreign_keys = ON;")
+    return conexion
+
+def inicializar_base_datos():
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS usuario (
+        id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
+        nombre TEXT NOT NULL UNIQUE,
+        contraseña_hash TEXT NOT NULL,
+        rol TEXT NOT NULL CHECK (rol IN ('Administrador', 'Supervisor', 'Reponedor'))
+    );
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS producto (
+        id_producto INTEGER PRIMARY KEY AUTOINCREMENT,
+        nombre TEXT NOT NULL,
+        stock INTEGER NOT NULL CHECK (stock >= 0),
+        stock_minimo INTEGER NOT NULL CHECK (stock_minimo >= 0),
+        precio REAL NOT NULL DEFAULT 0.00 CHECK (precio >= 0)
+    );
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS movimiento (
+        id_movimiento INTEGER PRIMARY KEY AUTOINCREMENT,
+        id_producto INTEGER NOT NULL,
+        tipo TEXT NOT NULL CHECK (tipo IN ('ALTA', 'BAJA')),
+        cantidad INTEGER NOT NULL CHECK (cantidad > 0),
+        id_usuario INTEGER NOT NULL,
+        fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT fk_movimiento_producto 
+            FOREIGN KEY (id_producto) 
+            REFERENCES producto(id_producto) 
+            ON DELETE CASCADE 
+            ON UPDATE CASCADE,
+        CONSTRAINT fk_movimiento_usuario
+            FOREIGN KEY (id_usuario)
+            REFERENCES usuario(id_usuario) 
+            ON DELETE CASCADE 
+            ON UPDATE CASCADE
+    );
+    """)
+
+    conexion.commit()
+    conexion.close()
