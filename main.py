@@ -1,15 +1,13 @@
-from repositorios import inicializar_base_datos, ProductoRepositorio, MovimientoRepositorio, UsuarioRepositorio
-from servicios import Inventario
+import tkinter as tk
+from repositorios import inicializar_base_datos
+from interfaz.app_gui import AppInventario
 
 def main():
     inicializar_base_datos()
 
-    repo_productos = ProductoRepositorio()
-    repo_movimientos = MovimientoRepositorio()
-    inv = Inventario(repo_productos, repo_movimientos)
-
-    print("¡Sistema de Inventario iniciado correctamente con SQLite!")
-    print(f"Productos actuales en la BD: {len(inv.listar())}")
+    root = tk.Tk()
+    app = AppInventario(root)
+    root.mainloop()
 
 if __name__ == "__main__":
     main()

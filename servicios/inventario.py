@@ -1,4 +1,4 @@
-from modelos import Movimiento, Producto
+from modelos import Movimiento, Producto, Categoria
 from repositorios import MovimientoRepositorio, ProductoRepositorio
 
 
@@ -31,36 +31,44 @@ class Inventario:
 
     # ---------- HU02 y HU05: entradas de stock ----------
     def registrar_alta(self, id_producto, cantidad, id_usuario, detalle=""):
-        if cantidad <= 0:
-            raise ValueError("La cantidad debe ser mayor a 0.")
         producto = self.buscar(id_producto)
+        if not producto:
+            raise ValueError(f"No existe el producto con ID {id_producto}.")
+        if cantidad <= 0:
+            raise ValueError("La cantidad a ingresar debe ser mayor a 0.")
+        
         producto.stock += cantidad
         self.__productos.actualizar(producto)
-        
+
         movimiento = Movimiento(
             id_producto=id_producto,
             tipo=Movimiento.ALTA,
             cantidad=cantidad,
-            id_usuario=id_usuario
+            id_usuario=id_usuario,
+            detalle=detalle
         )
         self.__movimientos.guardar(movimiento)
         return producto
 
     # ---------- HU03: salidas de stock ----------
     def registrar_baja(self, id_producto, cantidad, id_usuario, detalle=""):
-        if cantidad <= 0:
-            raise ValueError("La cantidad debe ser mayor a 0.")
         producto = self.buscar(id_producto)
-        if cantidad > producto.stock:
-            raise ValueError(f"Stock insuficiente. Disponible: {producto.stock}.")
+        if not producto:
+            raise ValueError(f"No existe el producto con ID {id_producto}.")
+        if cantidad <= 0:
+            raise ValueError("La cantidad a retirar debe ser mayor a 0.")
+        if producto.stock < cantidad:
+            raise ValueError(f"Stock insuficiente. Stock actual: {producto.stock}, solicitado: {cantidad}.")
+        
         producto.stock -= cantidad
         self.__productos.actualizar(producto)
-        
+
         movimiento = Movimiento(
             id_producto=id_producto,
             tipo=Movimiento.BAJA,
             cantidad=cantidad,
-            id_usuario=id_usuario
+            id_usuario=id_usuario,
+            detalle=detalle
         )
         self.__movimientos.guardar(movimiento)
         return producto
@@ -98,3 +106,78 @@ class Inventario:
         self.__productos.eliminar(id_producto)
         self.__movimientos.eliminar_por_producto(id_producto)
         return producto
+
+    # ---------- HU09: Categorías / Etiquetas ----------
+    def crear_categoria(self, nombre):
+        if not nombre or not nombre.strip():
+            raise ValueError("El nombre de la categoría es obligatorio.")
+        categoria = Categoria(nombre=nombre.strip())
+        return self.__repo_categorias.guardar(categoria)
+
+    def listar_categorias(self):
+        return self.__repo_categorias.listar()
+
+    def asignar_categoria_a_producto(self, id_producto, id_categoria):
+        producto = self.buscar(id_producto)
+        if id_categoria is not None:
+            categoria = self.__repo_categorias.obtener(id_categoria)
+            if not categoria:
+                raise ValueError(f"No existe la categoría con ID {id_categoria}.")
+        
+        producto.id_categoria = id_categoria
+        self.__productos.actualizar(producto)
+        return producto
+
+    def listar_productos_por_categoria(self, id_categoria):
+        return [p for p in self.listar() if p.id_categoria == id_categoria]
+
+# ---------- HU10: Resumen diario automático de ventas y gastos ----------
+    def resumen_diario(self):
+        from repositorios.conexion import obtener_conexion
+        
+        conexion = obtener_conexion()
+        cursor = conexion.cursor()
+
+        cursor.execute("""
+            SELECT m.tipo, m.cantidad, p.precio, m.detalle
+            FROM movimiento m
+            JOIN producto p ON m.id_producto = p.id_producto
+            WHERE DATE(m.fecha) = DATE('now', 'localtime')
+        """)
+        rows = cursor.fetchall()
+        conexion.close()
+
+        total_ventas_monto = 0.0
+        total_ventas_cantidad = 0
+        total_compras_gastos_monto = 0.0
+        total_compras_cantidad = 0
+        detalle_movimientos = []
+
+        for tipo, cantidad, precio, detalle in rows:
+            subtotal = cantidad * precio
+            if tipo == Movimiento.BAJA:
+                total_ventas_cantidad += cantidad
+                total_ventas_monto += subtotal
+            elif tipo == Movimiento.ALTA:
+                total_compras_cantidad += cantidad
+                total_compras_gastos_monto += subtotal
+            
+            detalle_movimientos.append({
+                "tipo": tipo,
+                "cantidad": cantidad,
+                "subtotal": subtotal,
+                "detalle": detalle
+            })
+
+        return {
+            "ventas": {
+                "cantidad_unidades": total_ventas_cantidad,
+                "monto_total": total_ventas_monto
+            },
+            "gastos_compras": {
+                "cantidad_unidades": total_compras_cantidad,
+                "monto_total": total_compras_gastos_monto
+            },
+            "operaciones_hoy": len(rows),
+            "detalle": detalle_movimientos
+        }

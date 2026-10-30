@@ -22,12 +22,25 @@ def inicializar_base_datos():
     """)
 
     cursor.execute("""
+    CREATE TABLE IF NOT EXISTS categoria (
+        id_categoria INTEGER PRIMARY KEY AUTOINCREMENT,
+        nombre TEXT NOT NULL UNIQUE
+    );
+    """)
+
+    cursor.execute("""
     CREATE TABLE IF NOT EXISTS producto (
         id_producto INTEGER PRIMARY KEY AUTOINCREMENT,
         nombre TEXT NOT NULL,
         stock INTEGER NOT NULL CHECK (stock >= 0),
         stock_minimo INTEGER NOT NULL CHECK (stock_minimo >= 0),
-        precio REAL NOT NULL DEFAULT 0.00 CHECK (precio >= 0)
+        precio REAL NOT NULL DEFAULT 0.00 CHECK (precio >= 0),
+        id_categoria INTEGER,
+        CONSTRAINT fk_producto_categoria
+            FOREIGN KEY (id_categoria)
+            REFERENCES categoria(id_categoria)
+            ON DELETE SET NULL
+            ON UPDATE CASCADE
     );
     """)
 
@@ -38,6 +51,7 @@ def inicializar_base_datos():
         tipo TEXT NOT NULL CHECK (tipo IN ('ALTA', 'BAJA')),
         cantidad INTEGER NOT NULL CHECK (cantidad > 0),
         id_usuario INTEGER NOT NULL,
+        detalle TEXT,
         fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT fk_movimiento_producto 
             FOREIGN KEY (id_producto) 
@@ -51,6 +65,14 @@ def inicializar_base_datos():
             ON UPDATE CASCADE
     );
     """)
+
+    cursor.execute("SELECT COUNT(*) FROM usuario;")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute(
+            "INSERT INTO usuario (nombre, contraseña_hash, rol) VALUES (?, ?, ?)",
+            ("admin", "1234", "Administrador")
+        )
+        conexion.commit()
 
     conexion.commit()
     conexion.close()
